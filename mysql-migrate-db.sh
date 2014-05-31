@@ -92,3 +92,6 @@ mysqldump --host="${src_host}" --user="${src_user}" --password="${src_pass}" \
 if [ ${?} -ne 0 ]; then
 	die 5 "Failed to import database on destination server"
 fi
+
+# Remove temp file
+rm ${temp_file}
