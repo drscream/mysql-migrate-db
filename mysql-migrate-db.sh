@@ -48,28 +48,28 @@ fi
 
 # Be sure database you like to migrate exists on the source
 if ! mysql --host="${src_host}" --user="${src_user}" --password="${src_pass}" \
-           -N -B  -e"show databases;" | grep -q "^${_db}$"; then
+           -N -B  -e"show databases;" | grep -q "^${sql_db}$"; then
 	die 3 "Database doesn't exists on source MySQL server"
 fi
 
 # Create DB and user information into temp file
 echo "*** create temp file with database creation and permission"
-echo "CREATE DATABASE IF NOT EXISTS ${db};" >> ${temp_file}
+echo "CREATE DATABASE IF NOT EXISTS ${sql_db};" >> ${temp_file}
 
 # Query mysql database for user information
 mysql --host="${src_host}" --user="${src_user}" --password="${src_pass}" -B -N \
 	-e "SELECT DISTINCT CONCAT('SHOW GRANTS FOR ''',user,'''@''',host,''';')
 	    AS query FROM user" mysql \
 	| mysql --host="${src_host}" --user="${src_user}" --password="${src_pass}" \
-	| sed 's:\\::g' | tr '\n' ';\n' | grep  "${sql_user}" \
-	| sed 's/Grants for .*/#### &/' >> "${temp_file}"
+	| grep "${sql_user}" | sed 's:\\::g' | sed 's/Grants for .*/# &/' \
+	| sed 's:$:;:g' >> "${temp_file}"
 if [ ${?} -ne 0 ]; then
 	die 4 "Couldn't get user information from database"
 fi
 
 # If ssh is set than copy temp file to destination server. Set also temporary
-# ssh commands
-if [ -n "${ssh_dst}" ];
+# ssh commands
+if [ -n "${ssh_dst}" ]; then
 	echo "*** scp temp file to destination server: ${ssh_dst}"
 	scp ${temp_file} ${ssh_dst}:/tmp
 	ssh_cmd="ssh ${ssh_dst}"
