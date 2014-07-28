@@ -54,7 +54,7 @@ fi
 
 # Create DB and user information into temp file
 echo "*** create temp file with database creation and permission"
-echo "CREATE DATABASE IF NOT EXISTS ${sql_db};" >> ${temp_file}
+echo "CREATE DATABASE IF NOT EXISTS \`${sql_db}\`;" >> ${temp_file}
 
 # Query mysql database for user information
 mysql --host="${src_host}" --user="${src_user}" --password="${src_pass}" -B -N \
